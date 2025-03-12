@@ -8,17 +8,17 @@ from data_loader import load_data
 from image_identifier import Image_Identifier
 
 def main():
-    batch_size = 75
-    train_dataset_size = 20000
-    test_dataset_size = 4000
+    batch_size = 50
+    train_dataset_size = 10000
+    test_dataset_size = 2000
 
     train_loader, test_loader = load_data(train_dataset_size, test_dataset_size, batch_size)
     model = get_model("ai_predictor_model.pth")
     optimizer = optim.Adam(model.parameters(), lr=0.001, weight_decay=0.001)
-    lr_scheduler = ReduceLROnPlateau(optimizer, mode="min", factor=0.75, patience=20)
+    lr_scheduler = ReduceLROnPlateau(optimizer, mode="min", factor=0.5, patience=20)
     bcewl_loss = nn.BCEWithLogitsLoss(reduction="sum")
 
-    epochs = 300
+    epochs = 100
     best_loss = 1000000
     for i in range(epochs):
         train_loss = train_model(train_loader, model, bcewl_loss, optimizer, train_dataset_size)
@@ -28,7 +28,7 @@ def main():
             torch.save(model, "models/best_model.pth")
             best_loss = test_loss
 
-        # lr_scheduler.step(train_loss)
+        lr_scheduler.step(train_loss)
         if (i+1) % int(epochs/10) == 0:
             print(f"EPOCH {i+1}: Train: {round(train_loss, 4)}, Test: {round(test_loss, 4)} (best loss was {round(best_loss, 4)})")
     

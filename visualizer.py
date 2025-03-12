@@ -4,7 +4,6 @@ import matplotlib.pyplot as plt
 from torchvision import utils
 
 def visTensor(tensor, ch=0, allkernels=False, nrow=8, padding=1):
-    print(tensor.shape)
     n,c,w,h = tensor.shape
 
     if allkernels: tensor = tensor.view(n*c, -1, w, h)
@@ -18,12 +17,10 @@ def visTensor(tensor, ch=0, allkernels=False, nrow=8, padding=1):
 
 if __name__ == "__main__":
     model = torch.load("models/best_model.pth", weights_only=False).cpu()
-    layer = 1
+    layer = int(input("Conv Layer to View: "))
     filter = model.conv[5*layer].weight.data.clone()
     visTensor(filter, ch=0, allkernels=False)
 
     plt.axis('off')
     plt.ioff()
     plt.show()
-
-    

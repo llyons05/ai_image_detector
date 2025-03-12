@@ -13,7 +13,7 @@ def get_layers(model: Image_Identifier) -> nn.Module:
 
 def show_maps():
     model: Image_Identifier = torch.load("models/best_model.pth", weights_only=False).to(torch.get_default_device())
-    conv_layers = get_layers(model)
+    model_layers = get_layers(model)
     image = load_image()
 
     model.eval()
@@ -22,13 +22,24 @@ def show_maps():
 
     outputs = [image]
     names = ["base image"]
-    for layer in conv_layers.children():
+    for i, layer in enumerate(model_layers.children()):
+        layer.eval()
         if type(layer) == nn.Dropout2d:
             continue
-        image = layer(image)
+
         if type(layer) == nn.Conv2d:
+            for j in range(layer.weight.data.shape[0]):
+                filter_j = layer.weight.data[j, :, :, :].unsqueeze(0)
+                output_map = nn.functional.conv2d(image, filter_j, stride=1, padding=1)
+                outputs.append(output_map)
+                names.append(f"{i},{j}")
+
+            image = layer(image)
             outputs.append(image)
-            names.append(str(layer))
+            names.append(str(i))
+
+        else:
+            image = layer(image)
     
     processed = []
     for feature_map in outputs:
@@ -37,9 +48,9 @@ def show_maps():
         gray_scale = gray_scale / feature_map.shape[0]
         processed.append(gray_scale.data.cpu().numpy())
     
-    fig = plt.figure(figsize=(30, 50))
+    fig = plt.figure(figsize=(60, 100))
     for i in range(len(processed)):
-        a = fig.add_subplot(5, 4, i+1)
+        a = fig.add_subplot(20, 20, i+1)
         imgplot = plt.imshow(processed[i])
         a.axis("off")
         a.set_title(names[i].split('(')[0], fontsize=30)
