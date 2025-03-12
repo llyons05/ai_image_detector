@@ -1,6 +1,7 @@
 .venv
 datasets
 models
+figures
 __pycache__
 *.png
 *.jpg

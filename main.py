@@ -14,11 +14,11 @@ def main():
 
     train_loader, test_loader = load_data(train_dataset_size, test_dataset_size, batch_size)
     model = get_model("ai_predictor_model.pth")
-    optimizer = optim.Adam(model.parameters(), lr=0.001, weight_decay=0.001)
+    optimizer = optim.Adam(model.parameters(), lr=0.0005, weight_decay=0.001)
     lr_scheduler = ReduceLROnPlateau(optimizer, mode="min", factor=0.5, patience=20)
     bcewl_loss = nn.BCEWithLogitsLoss(reduction="sum")
 
-    epochs = 100
+    epochs = 10
     best_loss = 1000000
     for i in range(epochs):
         train_loss = train_model(train_loader, model, bcewl_loss, optimizer, train_dataset_size)
@@ -77,7 +77,6 @@ def get_model(filename: str):
     if os.path.exists(f"models/{filename}"):
         model = torch.load(f"models/{filename}", weights_only=False).to(torch.get_default_device())
     else:
-        # model = nn.Sequential(nn.Linear(33, 128), nn.Sigmoid(), nn.Linear(128, 64), nn.Sigmoid(), nn.Linear(64, 32), nn.Sigmoid(), nn.Linear(32, 16), nn.Sigmoid(), nn.Linear(16, 8), nn.Sigmoid(), nn.Linear(8, 4), nn.Sigmoid(), nn.Linear(4, 1))
         model = Image_Identifier().to(torch.get_default_device())
 
     return model

@@ -6,6 +6,11 @@ from PIL import Image
 from image_identifier import Image_Identifier
 from pathlib import Path
 import random
+import math
+import os
+
+
+FIGURE_DIR = "figures"
 
 def get_layers(model: Image_Identifier) -> nn.Module:
     return model.conv
@@ -20,44 +25,55 @@ def show_maps():
     with torch.no_grad():
         print(nn.functional.sigmoid(model(image.view(1, 3, 32, 32)))[0][0])
 
-    outputs = [image]
-    names = ["base image"]
+    outputs = [[image]]
+    names = [["base image"]]
     for i, layer in enumerate(model_layers.children()):
         layer.eval()
         if type(layer) == nn.Dropout2d:
             continue
 
         if type(layer) == nn.Conv2d:
+            layer_outputs = []
+            layer_names = []
             for j in range(layer.weight.data.shape[0]):
                 filter_j = layer.weight.data[j, :, :, :].unsqueeze(0)
                 output_map = nn.functional.conv2d(image, filter_j, stride=1, padding=1)
-                outputs.append(output_map)
-                names.append(f"{i},{j}")
+                layer_outputs.append(output_map)
+                layer_names.append(str(j))
 
             image = layer(image)
-            outputs.append(image)
-            names.append(str(i))
+            layer_outputs.append(image)
+            layer_names.append("FINAL")
+
+            outputs.append(layer_outputs)
+            names.append(layer_names)
 
         else:
             image = layer(image)
     
+    for i in range(len(outputs)):
+        save_outputs(outputs[i], names[i], f"{FIGURE_DIR}/feature_map_layer_{i}.jpg")
+
+
+def save_outputs(outputs: list[torch.Tensor], names: list[str], filename: str):
     processed = []
     for feature_map in outputs:
         feature_map = feature_map.squeeze(0)
         gray_scale = torch.sum(feature_map,0)
         gray_scale = gray_scale / feature_map.shape[0]
         processed.append(gray_scale.data.cpu().numpy())
+
+    cols = 10
+    rows = math.ceil(len(outputs)/cols)
+
     
-    fig = plt.figure(figsize=(60, 100))
+    fig = plt.figure(figsize=(cols*1.5, rows*1.5))
     for i in range(len(processed)):
-        a = fig.add_subplot(20, 20, i+1)
+        a = fig.add_subplot(rows, cols, i+1)
         imgplot = plt.imshow(processed[i])
         a.axis("off")
-        a.set_title(names[i].split('(')[0], fontsize=30)
-    plt.savefig(str('feature_maps.jpg'), bbox_inches='tight')
-    # plt.ioff()
-    # plt.show()
-
+        a.set_title(names[i].split('(')[0], fontsize=cols*.75)
+    plt.savefig(filename, bbox_inches='tight')
 
 
 def load_image():
@@ -74,7 +90,13 @@ def load_image():
     return transform(image).unsqueeze(0)
 
 
+def ensure_fig_dir_exists():
+    if not os.path.exists(FIGURE_DIR):
+        os.makedirs(FIGURE_DIR)
+
+
 def main():
+    ensure_fig_dir_exists()
     show_maps()
 
 if __name__ == "__main__":

@@ -29,6 +29,8 @@ def load_data(train_dataset_size: int, test_dataset_size: int, train_batch_size:
 
 def load_dataset(images_dir: str, num_images: int, transform: transforms.Compose) -> torch_data.TensorDataset:
     """ Load a dataset of all images in a given directory """
+    print(f"Loading {num_images} images from {images_dir}...")
+
     labels_to_ids = {"REAL": torch.tensor(0), "FAKE": torch.tensor(1)}
     file_names = []
     labels = []
@@ -50,4 +52,5 @@ def load_dataset(images_dir: str, num_images: int, transform: transforms.Compose
     image_tensors = torch.stack(images, dim=0).to(torch.get_default_device())
     id_tensors = torch.stack(ids, dim=0).unsqueeze(1).float().to(torch.get_default_device())
 
+    print("Loading complete.")
     return torch_data.TensorDataset(image_tensors, id_tensors)
