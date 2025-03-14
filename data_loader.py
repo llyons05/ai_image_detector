@@ -8,16 +8,15 @@ import os
 import json
 
 
-FIGURE_DIR = "figures"
 MODEL_DIR = "models"
 DATA_DIR = "datasets"
+FIGURE_DIR = "figures"
+TEST_DIR = f"{DATA_DIR}/test/"
+TRAIN_DIR = f"{DATA_DIR}/train/"
 
 
 def load_data(train_dataset_size: int, test_dataset_size: int, train_batch_size: int) -> tuple[torch_data.DataLoader, torch_data.DataLoader]:
     """ Return (training data, testing data) """
-    main_dir = "datasets"
-    test_dir = f"{main_dir}/test/"
-    train_dir = f"{main_dir}/train/"
 
     test_transform = transforms.Compose([transforms.ToTensor()])
     train_transform = transforms.Compose([transforms.RandomHorizontalFlip(p=0.5),
@@ -25,8 +24,8 @@ def load_data(train_dataset_size: int, test_dataset_size: int, train_batch_size:
                                             transforms.RandomRotation(45),
                                             transforms.ToTensor()])
 
-    test_dataset = load_dataset(test_dir, test_dataset_size, test_transform)
-    train_dataset = load_dataset(train_dir, train_dataset_size, train_transform)
+    test_dataset = load_dataset(TEST_DIR, test_dataset_size, test_transform)
+    train_dataset = load_dataset(TRAIN_DIR, train_dataset_size, train_transform)
 
     test_loader = torch_data.DataLoader(test_dataset, test_dataset_size, generator=torch.Generator(device=torch.get_default_device()))
     train_loader = torch_data.DataLoader(train_dataset, train_batch_size, True, generator=torch.Generator(device=torch.get_default_device()))
@@ -63,8 +62,8 @@ def load_dataset(images_dir: str, num_images: int, transform: transforms.Compose
     return torch_data.TensorDataset(image_tensors, id_tensors)
 
 
-def load_existing_model_state(filename: str) -> tuple[torch.nn.Module, torch.optim.Optimizer, torch.optim.lr_scheduler.LRScheduler, int]:
-    data_dict = torch.load(f"models/{filename}", weights_only=False)
+def load_existing_model_state(model_name: str) -> tuple[torch.nn.Module, torch.optim.Optimizer, torch.optim.lr_scheduler.LRScheduler, int]:
+    data_dict = torch.load(f"models/{model_name}.pth", weights_only=False)
     model = data_dict["model"].to(torch.get_default_device())
     optimizer = data_dict["optimizer"]
     scheduler = data_dict["scheduler"]
@@ -73,7 +72,7 @@ def load_existing_model_state(filename: str) -> tuple[torch.nn.Module, torch.opt
     return model, optimizer, scheduler, epoch
 
 
-def save_model_state(filename: str, model: torch.nn.Module, optimizer: torch.optim.Optimizer, scheduler: torch.optim.lr_scheduler.LRScheduler, epoch: int) -> None:
+def save_model_state(model_name: str, model: torch.nn.Module, optimizer: torch.optim.Optimizer, scheduler: torch.optim.lr_scheduler.LRScheduler, epoch: int) -> None:
     data_dict = {
         "model": model,
         "optimizer": optimizer,
@@ -81,7 +80,7 @@ def save_model_state(filename: str, model: torch.nn.Module, optimizer: torch.opt
         "epoch": epoch
     }
 
-    torch.save(data_dict, f"models/{filename}")
+    torch.save(data_dict, f"models/{model_name}.pth")
 
 
 def ensure_all_dirs_exist() -> None:
