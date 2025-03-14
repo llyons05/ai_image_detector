@@ -63,7 +63,7 @@ def save_outputs(outputs: list[torch.Tensor], names: list[str], filename: str):
         gray_scale = gray_scale / feature_map.shape[0]
         processed.append(gray_scale.data.cpu().numpy())
 
-    cols = 10
+    cols = 8
     rows = math.ceil(len(outputs)/cols)
 
     
