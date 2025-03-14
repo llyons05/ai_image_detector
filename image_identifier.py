@@ -10,22 +10,22 @@ class Image_Identifier(nn.Module):
         dropout = .45
 
         self.conv = nn.Sequential(
-            nn.Conv2d(3, 128, (3, 3), padding=1), # 32x32
+            nn.Conv2d(3, 128, (3, 3), padding=1, padding_mode="replicate"), # 32x32
             nn.BatchNorm2d(128),
             nn.ReLU(),
             nn.Dropout2d(dropout),
             nn.AvgPool2d(2, 2), # 16x16
-            nn.Conv2d(128, 64, (3, 3), padding=1),
+            nn.Conv2d(128, 64, (3, 3), padding=1, padding_mode="replicate"),
             nn.BatchNorm2d(64),
             nn.ReLU(),
             nn.Dropout2d(dropout),
             nn.AvgPool2d(2, 2), # 8x8
-            nn.Conv2d(64, 32, (3, 3), padding=1),
+            nn.Conv2d(64, 32, (3, 3), padding=1, padding_mode="replicate"),
             nn.BatchNorm2d(32),
             nn.ReLU(),
             nn.Dropout2d(dropout),
             nn.AvgPool2d(2, 2), # 4x4
-            nn.Conv2d(32, 16, (3, 3), padding=1),
+            nn.Conv2d(32, 16, (3, 3), padding=1, padding_mode="replicate"),
             nn.BatchNorm2d(16),
             nn.ReLU(),
             nn.Dropout2d(dropout),
