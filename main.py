@@ -8,11 +8,12 @@ import data_loader as dl
 from image_identifier import Image_Identifier
 
 def main():
-    model_name = "ai_predictor_model.pth"
-    batch_size = 32
-    train_dataset_size = 1000
-    test_dataset_size = 1000
-    epochs = int(input("Epochs to train for: "))
+    config = dl.load_config()
+    model_name = config["model_name"]
+    epochs = config["num_epochs"]
+    batch_size = config["batch_size"]
+    train_dataset_size = config["train_size"]
+    test_dataset_size = config["test_size"]
 
     train_loader, test_loader = dl.load_data(train_dataset_size, test_dataset_size, batch_size)
     model, optimizer, lr_scheduler, starting_epoch = get_model_state(model_name)

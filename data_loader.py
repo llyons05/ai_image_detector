@@ -5,6 +5,7 @@ from PIL import Image
 from pathlib import Path
 import numpy as np
 import os
+import json
 
 
 FIGURE_DIR = "figures"
@@ -84,10 +85,19 @@ def save_model_state(filename: str, model: torch.nn.Module, optimizer: torch.opt
 
 
 def ensure_all_dirs_exist() -> None:
-    for dir in [FIGURE_DIR, MODEL_DIR, DATA_DIR]:
-        if not os.path.exists(dir):
-            print(f"Setting up directory: {dir}")
-            os.makedirs(dir)
+    for folder in [FIGURE_DIR, MODEL_DIR, DATA_DIR]:
+        if not os.path.exists(folder):
+            print(f"Setting up directory: {folder}")
+            os.makedirs(folder)
+
+
+def load_config(config_filename: str = "config.json") -> dict:
+    if not os.path.exists(config_filename):
+        raise Exception("Invalid config filename. Please make a config.json with 'model_name', 'num_epochs', 'train_size', 'test_size', and 'batch_size'.")
+    
+    with open(config_filename) as config_file:
+        config = json.load(config_file)
+    return config
 
 
 if __name__ == "__main__":
