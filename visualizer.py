@@ -17,7 +17,8 @@ def visTensor(tensor, ch=0, allkernels=False, nrow=8, padding=1):
 
 
 if __name__ == "__main__":
-    model = dl.load_existing_model_state("best_model.pth")[0].cpu()
+    model_name = dl.load_config()["model_name"]
+    model = dl.load_existing_model_state(model_name)[0].cpu()
     layer = int(input("Conv Layer to View: "))
     filter = model.conv[5*layer].weight.data.clone()
     visTensor(filter, ch=0, allkernels=False)

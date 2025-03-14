@@ -6,7 +6,6 @@ from PIL import Image
 from pathlib import Path
 import random
 import math
-import os
 
 from image_identifier import Image_Identifier
 import data_loader as dl
@@ -17,7 +16,8 @@ def get_layers(model: Image_Identifier) -> nn.Module:
 
 
 def show_maps():
-    model: Image_Identifier = dl.load_existing_model_state("best_model.pth")[0]
+    model_name = dl.load_config()["model_name"]
+    model: Image_Identifier = dl.load_existing_model_state(model_name)[0]
     model_layers = get_layers(model)
     image = load_image()
 
