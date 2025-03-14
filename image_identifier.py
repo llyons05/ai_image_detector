@@ -1,14 +1,13 @@
 from torch import nn, flatten
-from torch.nn import functional as F
 
 # https://www.cs.toronto.edu/~lczhang/360/lec/w05/overfit.html
-
+# https://www.kaggle.com/datasets/tristanzhang32/ai-generated-images-vs-real-images dataset with larger images
 
 class Image_Identifier(nn.Module):
     def __init__(self):
         super(Image_Identifier, self).__init__()
 
-        dropout = .2
+        dropout = .45
 
         self.conv = nn.Sequential(
             nn.Conv2d(3, 128, (3, 3), padding=1), # 32x32

@@ -1,7 +1,8 @@
-import torch
 import numpy as np
 import matplotlib.pyplot as plt
 from torchvision import utils
+
+import data_loader as dl
 
 def visTensor(tensor, ch=0, allkernels=False, nrow=8, padding=1):
     n,c,w,h = tensor.shape
@@ -16,7 +17,7 @@ def visTensor(tensor, ch=0, allkernels=False, nrow=8, padding=1):
 
 
 if __name__ == "__main__":
-    model = torch.load("models/best_model.pth", weights_only=False).cpu()
+    model = dl.load_existing_model_state("best_model.pth")[0].cpu()
     layer = int(input("Conv Layer to View: "))
     filter = model.conv[5*layer].weight.data.clone()
     visTensor(filter, ch=0, allkernels=False)

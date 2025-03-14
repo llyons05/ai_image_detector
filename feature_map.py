@@ -3,21 +3,21 @@ from torch import nn
 import torchvision.transforms as transforms
 import matplotlib.pyplot as plt
 from PIL import Image
-from image_identifier import Image_Identifier
 from pathlib import Path
 import random
 import math
 import os
 
+from image_identifier import Image_Identifier
+import data_loader as dl
 
-FIGURE_DIR = "figures"
 
 def get_layers(model: Image_Identifier) -> nn.Module:
     return model.conv
 
 
 def show_maps():
-    model: Image_Identifier = torch.load("models/best_model.pth", weights_only=False).to(torch.get_default_device())
+    model: Image_Identifier = dl.load_existing_model_state("best_model.pth")[0]
     model_layers = get_layers(model)
     image = load_image()
 
@@ -52,7 +52,7 @@ def show_maps():
             image = layer(image)
     
     for i in range(len(outputs)):
-        save_outputs(outputs[i], names[i], f"{FIGURE_DIR}/feature_map_layer_{i}.jpg")
+        save_outputs(outputs[i], names[i], f"{dl.FIGURE_DIR}/feature_map_layer_{i}.jpg")
 
 
 def save_outputs(outputs: list[torch.Tensor], names: list[str], filename: str):
@@ -67,7 +67,7 @@ def save_outputs(outputs: list[torch.Tensor], names: list[str], filename: str):
     rows = math.ceil(len(outputs)/cols)
 
     
-    fig = plt.figure(figsize=(cols*1.5, rows*1.5))
+    fig = plt.figure(figsize=(cols*2, rows*2))
     for i in range(len(processed)):
         a = fig.add_subplot(rows, cols, i+1)
         imgplot = plt.imshow(processed[i])
@@ -90,14 +90,10 @@ def load_image():
     return transform(image).unsqueeze(0)
 
 
-def ensure_fig_dir_exists():
-    if not os.path.exists(FIGURE_DIR):
-        os.makedirs(FIGURE_DIR)
-
-
 def main():
-    ensure_fig_dir_exists()
+    dl.ensure_all_dirs_exist()
     show_maps()
+
 
 if __name__ == "__main__":
     torch.set_default_device("cpu")

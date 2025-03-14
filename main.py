@@ -4,37 +4,36 @@ from torch import optim
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 import os
 
-from data_loader import load_data
+import data_loader as dl
 from image_identifier import Image_Identifier
 
 def main():
-    batch_size = 50
-    train_dataset_size = 10000
-    test_dataset_size = 2000
+    model_name = "ai_predictor_model.pth"
+    batch_size = 32
+    train_dataset_size = 1000
+    test_dataset_size = 1000
+    epochs = int(input("Epochs to train for: "))
 
-    train_loader, test_loader = load_data(train_dataset_size, test_dataset_size, batch_size)
-    model = get_model("ai_predictor_model.pth")
-    optimizer = optim.Adam(model.parameters(), lr=0.0005, weight_decay=0.001)
-    lr_scheduler = ReduceLROnPlateau(optimizer, mode="min", factor=0.5, patience=20)
+    train_loader, test_loader = dl.load_data(train_dataset_size, test_dataset_size, batch_size)
+    model, optimizer, lr_scheduler, starting_epoch = get_model_state(model_name)
     bcewl_loss = nn.BCEWithLogitsLoss(reduction="sum")
 
-    epochs = 10
     best_loss = 1000000
     for i in range(epochs):
         train_loss = train_model(train_loader, model, bcewl_loss, optimizer, train_dataset_size)
         test_loss = compute_validation(test_loader, model, bcewl_loss, test_dataset_size)
+        lr_scheduler.step(train_loss)
 
         if test_loss < best_loss:
-            torch.save(model, "models/best_model.pth")
+            dl.save_model_state("best_model.pth", model, optimizer, lr_scheduler, i + starting_epoch)
             best_loss = test_loss
 
-        lr_scheduler.step(train_loss)
         if (i+1) % int(epochs/10) == 0:
-            print(f"EPOCH {i+1}: Train: {round(train_loss, 4)}, Test: {round(test_loss, 4)} (best loss was {round(best_loss, 4)})")
+            print(f"EPOCH {i+1+starting_epoch}: Train: {round(train_loss, 4)}, Test: {round(test_loss, 4)} (best loss was {round(best_loss, 4)})")
     
 
-    torch.save(model, "models/ai_predictor_model.pth")
-    best_model = torch.load("models/best_model.pth", weights_only=False)
+    dl.save_model_state(model_name, model, optimizer, lr_scheduler, epochs + starting_epoch)
+    best_model = dl.load_existing_model_state("best_model.pth")[0]
 
     print()
     with torch.no_grad():
@@ -73,15 +72,19 @@ def compute_validation(loader, model: nn.Module, loss_fn: nn.Module, dataset_siz
     return total_loss/dataset_size
 
 
-def get_model(filename: str):
+def get_model_state(filename: str) -> tuple[nn.Module, optim.Optimizer, optim.lr_scheduler.LRScheduler, int]:
     if os.path.exists(f"models/{filename}"):
-        model = torch.load(f"models/{filename}", weights_only=False).to(torch.get_default_device())
-    else:
-        model = Image_Identifier().to(torch.get_default_device())
+        return dl.load_existing_model_state(filename)
 
-    return model
+    model = Image_Identifier().to(torch.get_default_device())
+    optimizer = optim.Adam(model.parameters(), lr=0.001, weight_decay=0.001)
+    lr_scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode="min", factor=0.75, patience=20)
+    epoch = 0
+
+    return model, optimizer, lr_scheduler, epoch
 
 
 if __name__ == "__main__":
     torch.set_default_device('cuda' if torch.cuda.is_available() else 'cpu')
+    dl.ensure_all_dirs_exist()
     main()
