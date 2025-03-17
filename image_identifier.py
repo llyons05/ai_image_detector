@@ -7,34 +7,34 @@ class Image_Identifier(nn.Module):
     def __init__(self):
         super(Image_Identifier, self).__init__()
 
-        dropout = .45
+        dropout = .45 # .35? v3 had .25
 
         self.conv = nn.Sequential(
             nn.Conv2d(3, 128, (3, 3), padding=1, padding_mode="replicate"), # 32x32
             nn.BatchNorm2d(128),
-            nn.ReLU(),
+            nn.LeakyReLU(),
             nn.Dropout2d(dropout),
             nn.AvgPool2d(2, 2), # 16x16
             nn.Conv2d(128, 64, (3, 3), padding=1, padding_mode="replicate"),
             nn.BatchNorm2d(64),
-            nn.ReLU(),
+            nn.LeakyReLU(),
             nn.Dropout2d(dropout),
             nn.AvgPool2d(2, 2), # 8x8
             nn.Conv2d(64, 32, (3, 3), padding=1, padding_mode="replicate"),
             nn.BatchNorm2d(32),
-            nn.ReLU(),
+            nn.LeakyReLU(),
             nn.Dropout2d(dropout),
             nn.AvgPool2d(2, 2), # 4x4
             nn.Conv2d(32, 16, (3, 3), padding=1, padding_mode="replicate"),
             nn.BatchNorm2d(16),
-            nn.ReLU(),
+            nn.LeakyReLU(),
             nn.Dropout2d(dropout),
             nn.AvgPool2d(2, 2), # 2x2
         )
 
         self.fc = nn.Sequential(
             nn.Linear(2*2*16, 32),
-            nn.ReLU(),
+            nn.LeakyReLU(),
             nn.Dropout1d(dropout),
             nn.Linear(32, 1),
         )
