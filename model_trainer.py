@@ -19,7 +19,7 @@ def train_model(model: nn.Module,
     for i in range(num_epochs):
         train_loss = train_epoch(train_loader, model, loss_fn, optimizer, len(train_loader.dataset))
         test_loss = compute_validation(test_loader, model, loss_fn, len(test_loader.dataset))
-        lr_scheduler.step(train_loss)
+        # lr_scheduler.step(train_loss)     Removing this for now since apparently Adam is better without it
 
         if test_loss < best_loss:
             dl.save_model_state("best_"+ model_name, model, optimizer, lr_scheduler, i + starting_epoch)
@@ -27,6 +27,7 @@ def train_model(model: nn.Module,
 
         if (i+1) % int(num_epochs/10) == 0:
             print(f"EPOCH {i+1+starting_epoch}: Train: {round(train_loss, 4)}, Test: {round(test_loss, 4)} (best loss was {round(best_loss, 4)})")
+            dl.save_model_state(model_name, model, optimizer, lr_scheduler, i + starting_epoch)
     
     dl.save_model_state(model_name, model, optimizer, lr_scheduler, num_epochs + starting_epoch)
     return model

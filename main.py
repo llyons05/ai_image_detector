@@ -34,7 +34,7 @@ def get_model_state(model_name: str) -> tuple[nn.Module, optim.Optimizer, optim.
         return dl.load_existing_model_state(model_name)
 
     model = Image_Identifier().to(torch.get_default_device())
-    optimizer = optim.Adam(model.parameters(), lr=0.001, weight_decay=0.00001)
+    optimizer = optim.AdamW(model.parameters(), lr=0.001, weight_decay=0.001)
     lr_scheduler = ReduceLROnPlateau(optimizer, mode="min", factor=0.75, patience=20)
     epoch = 0
 
